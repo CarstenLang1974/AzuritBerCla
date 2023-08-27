@@ -96,7 +96,7 @@ unsigned long ReadDuration;
 
 Robot::Robot() {
   name = "Generic";
-  developerActive = false;
+  developerActive = true;
   rc.setRobot(this);
   MyRpi.setRobot(this);
 
@@ -3201,6 +3201,7 @@ void Robot::setNextState(byte stateNew, byte dir) {
         //stateNew = STATE_STATION_CHECK;
         setActuator(ACT_CHGRELAY, 0);
         motorMowEnable = false;
+        ShowMessageln(F("XX STATE_FORWARD - stop mow motor"));
       }
       motorLeftSpeedRpmSet = motorSpeedMaxRpm; //use RPM instead of PWM to straight line
       motorRightSpeedRpmSet = motorSpeedMaxRpm;
@@ -4377,7 +4378,7 @@ void Robot::setNextState(byte stateNew, byte dir) {
       stateEndOdometryLeft = odometryLeft + (int)(odometryTicksPerCm * 30000);
       OdoRampCompute();
 
-
+      ShowMessageln(F("XX STATE_PERI_FIND - stop mow motor"));
       motorMowEnable = false;
       break;
 
@@ -5163,7 +5164,7 @@ void Robot::checkTilt() {
       //bber500
 
 
-      ShowMessageln("Motor mow STOP start again after 1 minute");
+      ShowMessageln("Motor mow STOP (checkTilt) start again after 1 minute");
       motorMowEnable = false;
       lastTimeMotorMowStuck = millis();
       reverseOrBidir(rollDir);
@@ -5487,7 +5488,8 @@ void Robot::loop()  {
       }
       imuDriveHeading = imu.ypr.yaw / PI * 180;
       motorControlOdo();
-      //bber13
+            
+      ShowMessageln(F("XX STATE_OFF - stop mow motor"));
       motorMowEnable = false; //to stop mow motor in OFF mode by pressing OFF again (the one shot OFF is bypass)
       checkSonar();  // only for test never use or the mower can't stay into the station
       readDHT22();
