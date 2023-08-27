@@ -45,7 +45,10 @@ void ADCManager::begin(){
   switch (sampleRate){
     case SRATE_38462: adcclk = 811595; break;
     case SRATE_19231: adcclk = 405797; break;
-    case SRATE_9615 : adcclk = 202898; break;
+    case SRATE_9615 : 
+    default:
+      adcclk = 202898; 
+      break;
   }  
   pmc_enable_periph_clk (ID_ADC); // To use peripheral, we must enable clock distributon to it
   adc_init(ADC, SystemCoreClock, adcclk, ADC_STARTUP_FAST); // startup=768 clocks

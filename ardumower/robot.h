@@ -238,9 +238,9 @@ class Robot
     char* rfidToDoName();
 
 
-    char* area1_ip = "10.0.0.151";
-    char* area2_ip = "10.0.0.150";
-    char* area3_ip = "10.0.0.158";
+    const char* area1_ip = "10.0.0.151";
+    const char* area2_ip = "10.0.0.150";
+    const char* area3_ip = "10.0.0.158";
 
     unsigned long stateStartTime;
     unsigned long stateEndTime;
@@ -339,7 +339,7 @@ class Robot
       struct rfid_list *next;
     };
 
-    typedef struct rfid_list;
+    struct rfid_list;
 
     struct rfid_list *head = NULL;
 
@@ -822,7 +822,7 @@ class Robot
 
     // read hardware sensor (HAL)
     //bb
-    virtual int readSensor(char type) {}
+    virtual int readSensor(char type) {return -1;}
 
     // set hardware actuator (HAL)
     virtual void setActuator(char type, int value) {}
