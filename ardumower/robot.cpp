@@ -1616,10 +1616,10 @@ void Robot::OdoRampCompute() { //execute only one time when a new state executio
   //bber500 reduce movement shock
   if (movingTimeRight < 4000 ) movingTimeRight = 4000;
 
-  //for small mouvement need to reduce the accel duration
-  if (movingTimeLeft >= motorOdoAccel) accelDurationLeft = motorOdoAccel;
+  //for small movement need to reduce the accel duration
+  if (movingTimeLeft >= (unsigned long)motorOdoAccel) accelDurationLeft = motorOdoAccel;
   else   accelDurationLeft =  movingTimeLeft / 2;
-  if (movingTimeRight >= motorOdoAccel) accelDurationRight = motorOdoAccel;
+  if (movingTimeRight >= (unsigned long)motorOdoAccel) accelDurationRight = motorOdoAccel;
   else   accelDurationRight =  movingTimeRight / 2;
   if (statusCurr == TESTING) {  //avoid maxduration stop when use test Odo with Pfod
     MaxOdoStateDuration = 30000 + max(movingTimeRight, movingTimeLeft); //add 30 secondes to the max moving duration of the 2 wheels
@@ -2131,7 +2131,7 @@ void Robot::motorControlPerimeter() {
   }
 
 
-  if ((millis() - lastTimeForgetWire ) < trackingPerimeterTransitionTimeOut) {
+  if ((millis() - lastTimeForgetWire ) < (uint32_t)trackingPerimeterTransitionTimeOut) {
     //PeriCoeffAccel move gently from 3 to 1 and so perimeterPID.y/PeriCoeffAccel increase during 3 secondes
     PeriCoeffAccel = (3000.00 - (millis() - lastTimeForgetWire)) / 1000.00 ;
     if (PeriCoeffAccel < 1.00) PeriCoeffAccel = 1.00;
@@ -2240,7 +2240,7 @@ void Robot::checkOdometryFaults() {
 void Robot::motorControl() {
   if (millis() < nextTimeMotorControl) return;
   nextTimeMotorControl = millis() + 200;  // 10 at the original
-  static unsigned long nextMotorControlOutputTime = 0;
+  //static unsigned long nextMotorControlOutputTime = 0;
 
   // Regelbereich entspricht maximaler PWM am Antriebsrad (motorSpeedMaxPwm), um auch an Steigungen hÃ¶chstes Drehmoment fÃ¼r die Solldrehzahl zu gewÃ¤hrleisten
   motorLeftPID.w = motorLeftSpeedRpmSet;               // SOLL
@@ -5047,7 +5047,7 @@ void Robot::checkSonarPeriTrack() {
   sonarDistLeft = NO_ECHO;
   sonarDistCenter = NO_ECHO;
 
-  if ((sonarDistRight != NO_ECHO) && (sonarDistRight < sonarTriggerBelow))  {
+  if ((sonarDistRight != NO_ECHO) && (sonarDistRight < (unsigned int)sonarTriggerBelow))  {
     //if (((sonarDistCenter != NO_ECHO) && (sonarDistCenter < sonarTriggerBelow))  ||  ((sonarDistRight != NO_ECHO) && (sonarDistRight < sonarTriggerBelow)) ||  ((sonarDistLeft != NO_ECHO) && (sonarDistLeft < sonarTriggerBelow))  ) {
     //setBeeper(1000, 50, 50, 60, 60);
     ShowMessageln("Sonar reduce speed on tracking for 2 meters");
@@ -5081,8 +5081,8 @@ void Robot::checkSonar() {
   if (sonarDistRight < 25 || sonarDistRight > 90) sonarDistRight = NO_ECHO; // Object is too close to the sensor JSN SR04T can't read <20 CM . Sensor value is useless
   if (sonarDistLeft < 25 || sonarDistLeft  > 90) sonarDistLeft = NO_ECHO;
 
-  if (((sonarDistCenter != NO_ECHO) && (sonarDistCenter < sonarTriggerBelow))  ||  ((sonarDistRight != NO_ECHO) && (sonarDistRight < sonarTriggerBelow)) ||  ((sonarDistLeft != NO_ECHO) && (sonarDistLeft < sonarTriggerBelow))  ) {
-    setBeeper(1000, 500, 500, 60, 60);
+  if (((sonarDistCenter != NO_ECHO) && (sonarDistCenter < (unsigned int)sonarTriggerBelow))  ||  ((sonarDistRight != NO_ECHO) && (sonarDistRight < (unsigned int)sonarTriggerBelow)) ||  ((sonarDistLeft != NO_ECHO) && (sonarDistLeft < (unsigned int)sonarTriggerBelow))  ) {
+    setBeeper(1000, 50U, 50U, 60U, 60U);
     nextTimeCheckSonar = millis() + 1500;  //wait before next reading
 
     //**************************if sonar during spirale reinit spirale variable*****************
@@ -5092,7 +5092,7 @@ void Robot::checkSonar() {
     //*********************************************************************************
     if ((stateCurr == STATE_FORWARD_ODO) || (stateCurr == STATE_PERI_FIND) || (stateCurr == STATE_MOW_SPIRALE)) {
       //avoid the mower move when testing
-      if ((sonarDistCenter != NO_ECHO) && (sonarDistCenter < sonarTriggerBelow)) {  //center
+      if ((sonarDistCenter != NO_ECHO) && (sonarDistCenter < (unsigned int)sonarTriggerBelow)) {  //center
         //bber200
         if (!sonarLikeBumper) {
           sonarSpeedCoeff = 0.80;
@@ -5107,7 +5107,7 @@ void Robot::checkSonar() {
           return;
         }
       }
-      if ((sonarDistRight != NO_ECHO) && (sonarDistRight < sonarTriggerBelow)) {  //right
+      if ((sonarDistRight != NO_ECHO) && (sonarDistRight < (unsigned int)sonarTriggerBelow)) {  //right
         if (!sonarLikeBumper) {
           sonarSpeedCoeff = 0.70;
           nextTimeCheckSonar = millis() + 3000;
@@ -5121,7 +5121,7 @@ void Robot::checkSonar() {
           return;
         }
       }
-      if ((sonarDistLeft != NO_ECHO) && (sonarDistLeft < sonarTriggerBelow)) {  //LEFT
+      if ((sonarDistLeft != NO_ECHO) && (sonarDistLeft < (unsigned int)sonarTriggerBelow)) {  //LEFT
         if (!sonarLikeBumper) {
           sonarSpeedCoeff = 0.70;
           nextTimeCheckSonar = millis() + 3000;
@@ -5336,7 +5336,7 @@ void Robot::readDHT22() {
   }
 }
 void Robot::checkTimeout() {
-  if (stateTime > motorForwTimeMax) {
+  if (stateTime > (unsigned long)motorForwTimeMax) {
     ShowMessageln("Timeout on state the mower run for a too long duration ???????????????????????");
     setNextState(STATE_PERI_OUT_STOP, !rollDir); // toggle roll dir
   }
@@ -6101,7 +6101,7 @@ void Robot::loop()  {
       }
 
       if (ActualSpeedPeriPWM != MaxSpeedperiPwm) {
-        if (totalDistDrive > whereToResetSpeed) {
+        if (totalDistDrive > (unsigned long)whereToResetSpeed) {
           ShowMessage("Distance OK, time to reset the initial Speed : ");
           ShowMessageln(ActualSpeedPeriPWM);
           ActualSpeedPeriPWM = MaxSpeedperiPwm;
@@ -6115,7 +6115,7 @@ void Robot::loop()  {
         // if ((areaToGo == areaInMowing) && (startByTimer) && (totalDistDrive > whereToStart * 100)) {
         //bber35
 
-        if ((areaToGo == areaInMowing) && (totalDistDrive >= whereToStart * 100)) {
+        if ((areaToGo == areaInMowing) && (totalDistDrive >= (unsigned long)whereToStart * 100)) {
           startByTimer = false;
           ShowMessage("Distance OK, time to start mowing into new area ");
           ShowMessageln(areaInMowing);

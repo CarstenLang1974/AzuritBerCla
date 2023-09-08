@@ -26,8 +26,10 @@ template <class T> int eewrite(int &ee, const T& value)
     const byte* p = (const byte*)(const void*)&value;
     unsigned int i;
     for (i = 0; i < sizeof(value); i++)
-          Flash.write(ee++, *p++);
-          watchdogReset();
+    {
+      Flash.write(ee++, *p++);
+      watchdogReset();
+    }
     return i;
 }
 
@@ -36,8 +38,10 @@ template <class T> int eeread(int &ee, T& value)
     byte* p = (byte*)(void*)&value;
     unsigned int i;
     for (i = 0; i < sizeof(value); i++)
+    {
           *p++ = Flash.read(ee++);
           watchdogReset();
+    }
     return i;
 }
 

@@ -278,7 +278,7 @@ byte readAT24C32(unsigned int address) {
  return b;
 }
 
-byte writeAT24C32(unsigned int address,byte data) {
+void writeAT24C32(unsigned int address,byte data) {
    //unsigned int address = 1021;
   Wire.beginTransmission(AT24C32_ADDRESS);
   if (Wire.endTransmission() == 0) {

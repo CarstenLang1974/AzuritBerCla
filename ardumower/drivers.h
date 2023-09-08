@@ -127,7 +127,7 @@ boolean readDS1307(datetime_t &dt);
 boolean setDS1307(datetime_t &dt);
 boolean checkAT24C32();
 byte readAT24C32(unsigned int address);
-byte writeAT24C32(unsigned int address,byte data);
+void writeAT24C32(unsigned int address,byte data);
 
 // Returns the day of week (0=Sunday, 6=Saturday) for a given date
 int getDayOfWeek(int month, int day, int year, int CalendarSystem);

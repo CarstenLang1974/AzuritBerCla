@@ -1135,8 +1135,6 @@ void RemoteControl::sendTimerDetailMenu(int timerIdx, boolean update) {
   serialPort->print(timerIdx);
   serialPort->print("~Use ");
   sendYesNo(robot->timer[timerIdx].active);
-  int startm = time2minutes(robot->timer[timerIdx].startTime);
-  int stopm = time2minutes(robot->timer[timerIdx].stopTime);
   String sidx = String(timerIdx);
   sendSlider("p1" + sidx, F("Start hour "), robot->timer[timerIdx].startTime.hour, "", 1, 23, 0);
   sendSlider("p2" + sidx, F("Start minute "), robot->timer[timerIdx].startTime.minute, "", 1, 59, 0);
@@ -1484,7 +1482,7 @@ void RemoteControl::processCommandMenu(String pfodCmd) {
       robot->setNextState(STATE_STATION_REV, 0);
     }
     else {
-      if (robot->mowPatternName() == "WIRE") {
+      if (strcmp(robot->mowPatternName(), "WIRE")==0) {
         robot->totalDistDrive = 0;
         robot->statusCurr = TRACK_TO_START; //status change later into STATE_PERI_STOP_TOTRACK
         robot->setNextState(STATE_PERI_FIND, 0);
@@ -1885,9 +1883,8 @@ void RemoteControl::run() {
   } else if (pfodState == PFOD_PLOT_GPS) {
     if (millis() >= nextPlotTime) {
       nextPlotTime = millis() + 200;
-      float lat, lon;
-      unsigned long age;
-
+      //float lat, lon;
+      //unsigned long age;
     }
   } else if (pfodState == PFOD_PLOT_GPS2D) {
     if (millis() >= nextPlotTime) {
