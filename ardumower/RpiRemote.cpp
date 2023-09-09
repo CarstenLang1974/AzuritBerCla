@@ -58,10 +58,10 @@ void RpiRemote::run() {
 void RpiRemote::receivePiCommand (String ActuatorName, int value) {
   if (ActuatorName == "mowmotor") {
     if (value == 1) {
-      robot->motorMowEnable = true;
+      robot->setMotorMowEnable(true);
     }
     else {
-      robot->motorMowEnable = false;
+      robot->setMotorMowEnable(false);
     }
   }
 }
@@ -1008,6 +1008,8 @@ void RpiRemote::receive_request() {
         break;
       case 3:
         trigger = atoi(token);
+        robot->ShowMessage("trigger value unused ");
+        robot->ShowMessageln(trigger);
         break;
       case 4:
         max_repetition = atoi(token);
@@ -1015,7 +1017,6 @@ void RpiRemote::receive_request() {
     }
     counter++;
   }
-
   if (messageType == "INF") {
     delayInfoToPi = 1000 / frequency; // if freq=2 then read each 500ms
     maxRepetInfoToPi = max_repetition;

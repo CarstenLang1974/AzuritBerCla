@@ -88,7 +88,7 @@ void Screen::refreshStationScreen() {
 
   */
   u8g2.setFont(u8g2_font_ncenB14_tr);
-  if (robot.stateName() == "CHARG") {
+  if (String(robot.stateName()) == String("CHARG")) {
     u8g2.setFont(u8g2_font_ncenB08_tr);
     u8g2.setCursor(10, 20);
     u8g2.print("Bat Volt :");

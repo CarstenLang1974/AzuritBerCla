@@ -150,7 +150,7 @@
 //#define SIGCODE_3  // Ardumower alternative perimeter signal
 
 // ------- ultrasonic config ---------------------------------------------------------
-#define NO_ECHO 0U
+#define US_NO_ECHO 0U
 
 /*
   Ardumower robot chassis

@@ -32,7 +32,7 @@
 
 // ---------- date time --------------------------------------
 
-extern char *dayOfWeek[];
+extern const char *dayOfWeek[];
 
 struct timehm_t {
   byte hour;

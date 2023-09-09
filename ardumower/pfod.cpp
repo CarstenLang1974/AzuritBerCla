@@ -495,8 +495,15 @@ void RemoteControl::processMowMenu(String pfodCmd) {
   else if (pfodCmd == "o10") {
     testmode = (testmode + 1) % 2;
     switch (testmode) {
-      case 0: robot->setNextState(STATE_OFF, 0); robot->motorMowPwmCoeff = 100; robot->motorMowEnable = false; break;
-      case 1: robot->setNextState(STATE_MANUAL, 0); robot->motorMowEnable = true; break;
+      case 0: 
+        robot->setNextState(STATE_OFF, 0); 
+        robot->motorMowPwmCoeff = 100; 
+        robot->setMotorMowEnable(false,"processMowMenu - o10 0"); 
+        break;
+      case 1: 
+        robot->setNextState(STATE_MANUAL, 0); 
+        robot->setMotorMowEnable(true,"processMowMenu - o10 1"); 
+        break;
     }
   }
   sendMowMenu(true);
@@ -1359,6 +1366,8 @@ void RemoteControl::sendInfoMenu(boolean update) {
   serialPort->print(robot->statsBatteryChargingCapacityTotal / 1000);
   serialPort->print(F("|v08~Battery recharged capacity average (mAh)"));
   serialPort->print(robot->statsBatteryChargingCapacityAverage);
+  serialPort->print(F("|v09~Beep enable "));
+  sendYesNo(robot->beepEnable);
   //serialPort->print("|d01~Perimeter v");
   //serialPort->print(verToString(readPerimeterVer()));
   //serialPort->print("|d02~IMU v");
@@ -1371,7 +1380,7 @@ void RemoteControl::sendInfoMenu(boolean update) {
 void RemoteControl::processInfoMenu(String pfodCmd) {
   if (pfodCmd == "v01") robot->developerActive = !robot->developerActive;
   if (pfodCmd == "v04") robot->statsOverride = !robot->statsOverride;
-
+  if (pfodCmd == "v09") robot->beepEnable = !robot->beepEnable;
 
   sendInfoMenu(true);
 }
@@ -1461,7 +1470,7 @@ void RemoteControl::processCommandMenu(String pfodCmd) {
   } else if (pfodCmd == "ra") {
     robot->statusCurr = NORMAL_MOWING;
     robot->mowPatternDuration = 0;
-    robot->motorMowEnable = true;
+    robot->setMotorMowEnable(true, "pfodCmd == ra");
     if ((robot->stateCurr == STATE_STATION) || (robot->stateCurr == STATE_STATION_CHARGING)) {
       //bber40
       robot->ShowMessageln("MANUAL START FROM STATION");
@@ -1495,14 +1504,12 @@ void RemoteControl::processCommandMenu(String pfodCmd) {
   } else if (pfodCmd == "rc") {
     // cmd: start remote control (RC)
     /*
-      robot->motorMowEnable = true;
-
       robot->setNextState(STATE_REMOTE, 0);
       sendCommandMenu(true);
     */
   } else if (pfodCmd == "rm") {
     // cmd: mower motor on/off
-    robot->motorMowEnable = !robot->motorMowEnable;
+    robot->setMotorMowEnable(!robot->motorMowEnable,"processCommandMenu - rm"); 
     sendCommandMenu(true);
   } else if (pfodCmd == "rs") {
     // cmd: state
@@ -1580,7 +1587,7 @@ void RemoteControl::processManualMenu(String pfodCmd) {
     // manual: mower ON/OFF
     //bber13
     robot->setNextState(STATE_MANUAL, 0);
-    robot->motorMowEnable = !robot->motorMowEnable;
+    robot->setMotorMowEnable(!robot->motorMowEnable,"processManualMenu - nm"); 
     sendManualMenu(true);
   } else if (pfodCmd == "ns") {
     // manual: stop
@@ -1721,7 +1728,7 @@ void RemoteControl::processTestOdoMenu(String pfodCmd) {
     sendTestOdoMenu(true);
   }
   else if (pfodCmd == "yt12") {
-    robot->motorMowEnable = !robot->motorMowEnable;
+    robot->setMotorMowEnable(!robot->motorMowEnable,"processTestOdoMenu - yt12"); 
     robot->setNextState(STATE_TEST_MOTOR, robot->rollDir);
     sendTestOdoMenu(true);
   }
@@ -1738,7 +1745,7 @@ void RemoteControl::sendCompassMenu(boolean update) {
 
 void RemoteControl::processCompassMenu(String pfodCmd) {
   if (pfodCmd == "cm") {
-    robot->motorMowEnable = !robot->motorMowEnable;
+    robot->setMotorMowEnable(!robot->motorMowEnable,"processCompassMenu - cm"); 
     sendCompassMenu(true);
   } else if (pfodCmd == "cn") {
     robot->yawToFind = 0;

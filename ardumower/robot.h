@@ -30,7 +30,6 @@
 #include <Wire.h>
 
 
-
 //#include <Servo.h>  // for RC brushless contoller
 #include "drivers.h"
 #include "pid.h"
@@ -235,7 +234,7 @@ class Robot
     unsigned long stateTime;
     const char* stateName();
     const char* statusName();
-    char* rfidToDoName();
+    String rfidToDoName();
 
 
     const char* area1_ip = "10.0.0.151";
@@ -687,6 +686,7 @@ class Robot
     boolean useMqtt; // mqtt work to send dat to homeassistant
     boolean MyrpiStatusSync;
     unsigned long beepOnOFFDuration; //variable use for the beeper
+    boolean beepEnable;
     boolean beepState;//for the beeper true when sound
     unsigned long  nextTimeBeeper;// use for beeper
     boolean startByTimer; // use to know if the start is initiate by timer or manual via PFOD
@@ -843,7 +843,7 @@ class Robot
     virtual void resetErrorCounters();
     virtual void resetMotorFault();// {}
     //bb
-    virtual void setBeeper(int totalDuration, byte OnDuration, byte OffDuration, byte frequenceOn, byte frequenceOff ); // Set the variable for the beeper
+    virtual void setBeeper(int totalDuration, byte OnDuration, byte OffDuration, byte frequenceOn, byte frequenceOff, const String prefix = "" ); // Set the variable for the beeper
     virtual void receivePiPfodCommand (String RpiCmd, float v1, float v2, float v3);
 
     virtual void ShowMessage(String message);
@@ -853,8 +853,9 @@ class Robot
 
     virtual void printSettingSerial();
     const char* mowPatternNameList(byte mowPatternIndex);
-    char* rfidToDoNameList(byte rfidToDoIndex);
+    String rfidToDoNameList(byte rfidToDoIndex);
     const char* statusNameList(byte statusIndex);
+    void setMotorMowEnable(bool mowEnable, const String prefix = "");
 
     virtual void insert_rfid_list(unsigned long TagNr, byte TagMowerStatus, byte TagToDo, int TagSpeed, float TagAngle1, int TagDist1, float TagAngle2, int TagDist2);
     virtual void print_rfid_list();

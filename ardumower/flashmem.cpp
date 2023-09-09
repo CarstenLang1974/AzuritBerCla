@@ -11,7 +11,7 @@
 FlashClass Flash;
 
 
-int eereadwriteString(boolean readflag, int &ee, String& value)
+void eereadwriteString(boolean readflag, int &ee, String& value)
 {
   unsigned int i;
   if (readflag) {

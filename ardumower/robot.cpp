@@ -85,7 +85,7 @@ const char* statusNames[] = {"WAIT", "NORMALMOWING", "SPIRALEMOWING", "BACKTOSTA
 
 const char* mowPatternNames[] = {"RAND", "LANE",  "WIRE" , "ZIGZAG"};
 const char* consoleModeNames[] = {"sen_counters", "sen_values", "perimeter", "off", "Tracking"};
-char* rfidToDoNames[] = {"NOTHING", "RTS", "FAST_START", "NEW_AREA", "SPEED", "AREA1", "AREA2", "AREA3"};
+const char* rfidToDoNames[] = {"NOTHING", "RTS", "FAST_START", "NEW_AREA", "SPEED", "AREA1", "AREA2", "AREA3"};
 
 unsigned long StartReadAt;
 int distance_find;
@@ -265,6 +265,7 @@ Robot::Robot() {
   gpsReady = false;
   MyrpiStatusSync = false;
   ConsoleToPfod = false;
+  beepEnable = false;
 }
 
 
@@ -279,11 +280,11 @@ const char* Robot::statusNameList(byte statusIndex) {
 }
 
 
-char* Robot::rfidToDoName() {
+String Robot::rfidToDoName() {
   return rfidToDoNames[rfidToDoCurr];
 }
 
-char* Robot::rfidToDoNameList(byte rfidToDoIndex) {
+String Robot::rfidToDoNameList(byte rfidToDoIndex) {
   return rfidToDoNames[rfidToDoIndex];
 }
 
@@ -365,12 +366,12 @@ void Robot::rfidTagTraitement(unsigned long TagNr, byte statusCurr) {
   if (tagAndStatus_exist_in_list)
   {
     //debut du traitement
-    ShowMessage(F("Tag and Status find to do is "));
-    ShowMessageln(F(rfidToDoNameList(ptr->TagToDo)));
+    ShowMessage("Tag and Status find to do is ");
+    ShowMessageln(rfidToDoNameList(ptr->TagToDo));
     switch (ptr->TagToDo) {
 
       case NOTHING:
-        ShowMessageln(F("nothing to do ???"));
+        ShowMessageln("nothing to do ???");
         break;
       case RTS:
         ShowMessage("Fast return tag : Turning ");
@@ -2306,7 +2307,7 @@ void Robot::motorControl() {
 void Robot::motorMowControl() {
   if (millis() < nextTimeMotorMowControl) return;
   nextTimeMotorMowControl = millis() + 100;
-  if (motorMowForceOff) motorMowEnable = false;
+  if (motorMowForceOff) setMotorMowEnable(false, "motorMowControl - motorMowForceOff");
   //Auto adjust the motor speed according to cutting power (The goal is On high grass the motor rotate faster)
   //A runningmedian process is used to check each seconde the power value of mow motor
   //if power is low the speed is reduce to have a longer mowing duration and less noise.
@@ -2351,12 +2352,34 @@ void Robot::resetIdleTime() {
   idleTimeSec = 0;
 }
 
-void Robot::setBeeper(int totalDuration, byte OnDuration, byte OffDuration, byte frequenceOn, byte frequenceOff ) { // Set the variable for the beeper
-  endBeepTime = millis() + totalDuration * 10;
-  beepOnDuration = OnDuration * 10;
-  beepOffDuration = OffDuration * 10;
-  beepfrequenceOn = frequenceOn * 10;
-  beepfrequenceOff = frequenceOff * 10;
+void Robot::setBeeper(int totalDuration, byte OnDuration, byte OffDuration, byte frequenceOn, byte frequenceOff, const String prefix )
+{ // Set the variable for the beeper
+  ShowMessage(prefix);
+  ShowMessage(" setBeeper ");
+  ShowMessage(totalDuration);
+  ShowMessage(", ");
+  ShowMessage(OnDuration);
+  ShowMessage(", ");
+  ShowMessage(OffDuration);
+  ShowMessage(", ");
+  ShowMessage(frequenceOn);
+  ShowMessage(", ");
+  ShowMessageln(frequenceOff);
+
+  if (beepEnable) {
+    endBeepTime = millis() + totalDuration * 10;
+    beepOnDuration = OnDuration * 10;
+    beepOffDuration = OffDuration * 10;
+    beepfrequenceOn = frequenceOn * 10;
+    beepfrequenceOff = frequenceOff * 10;
+  } 
+  else {
+    endBeepTime = millis();
+    beepOnDuration = 0;
+    beepOffDuration = 0;
+    beepfrequenceOn = 0;
+    beepfrequenceOff = 0;
+  }
 }
 
 
@@ -2456,7 +2479,7 @@ void Robot::setup()  {
   nextTimeReadDHT22 = millis() + 15000; //read only after all the setting of the mower are OK
 
   stateStartTime = millis();
-  setBeeper(100, 50, 50, 200, 200 );//beep for 3 sec
+  setBeeper(100, 50, 50, 200, 200, "setup");//beep for 3 sec
   gps.init();
   Console.println(F("START"));
   Console.print(F("Ardumower "));
@@ -2819,7 +2842,7 @@ void Robot::readSerial() {
         setNextState(STATE_ROLL_TO_FIND_YAW, 0); // press 'h' to drive home
         break;
       case 'r':
-        setBeeper(400, 50, 50, 200, 0 );//error
+        setBeeper(400, 50, 50, 200, 0, "error");//error
         break;
       case 's':
         //imu.calibComStartStop();
@@ -2853,7 +2876,7 @@ void Robot::checkButton() {
       //ShowMessage(F("Button Pressed counter : "));
       //ShowMessageln(buttonCounter);
       // ON/OFF button pressed
-      setBeeper(50, 50, 0, 200, 0 );//
+      setBeeper(50, 50, 0, 200, 0, "button");
       buttonCounter++;
       if (buttonCounter >= 3) buttonCounter = 3;
       //resetIdleTime();
@@ -2865,14 +2888,14 @@ void Robot::checkButton() {
       //ShowMessageln(buttonCounter);
       if ((statusCurr == NORMAL_MOWING) || (statusCurr == SPIRALE_MOWING) || (stateCurr == STATE_ERROR) || (statusCurr == WIRE_MOWING) || (statusCurr == BACK_TO_STATION) || (statusCurr == TRACK_TO_START)) {
         ShowMessageln(F("ButtonPressed Stop Mowing and Reset Error"));
-        motorMowEnable = false;
+        setMotorMowEnable(false);
         buttonCounter = 0;
         setNextState(STATE_OFF, 0);
         return;
       }
       if  ((stateCurr == STATE_OFF) || (stateCurr == STATE_STATION)) {
         if (buttonCounter == 1) {
-          motorMowEnable = true;
+          setMotorMowEnable(true);
           ShowMessageln("MANUAL START FROM STATION");
           statusCurr = NORMAL_MOWING;
           findedYaw = 999;
@@ -2904,7 +2927,7 @@ void Robot::checkButton() {
         }
         else if (buttonCounter == 2) {
           // start normal with random mowing
-          motorMowEnable = true;
+          setMotorMowEnable(true);
           statusCurr = NORMAL_MOWING;
           mowPatternCurr = MOW_RANDOM;
           buttonCounter = 0;
@@ -3179,7 +3202,7 @@ void Robot::readSensors() {
 
 void Robot::setDefaults() {
   motorLeftSpeedRpmSet = motorRightSpeedRpmSet = 0;
-  motorMowEnable = false;
+  setMotorMowEnable(false);
 }
 
 // set state machine new state
@@ -3200,7 +3223,7 @@ void Robot::setNextState(byte stateNew, byte dir) {
       if ((stateCurr == STATE_STATION) || (stateCurr == STATE_STATION_CHARGING)) {
         //stateNew = STATE_STATION_CHECK;
         setActuator(ACT_CHGRELAY, 0);
-        motorMowEnable = false;
+        setMotorMowEnable(false);
         ShowMessageln(F("XX STATE_FORWARD - stop mow motor"));
       }
       motorLeftSpeedRpmSet = motorSpeedMaxRpm; //use RPM instead of PWM to straight line
@@ -3521,13 +3544,13 @@ void Robot::setNextState(byte stateNew, byte dir) {
       //bber100 err here
       if (statusCurr == TRACK_TO_START) {
         if (mowPatternCurr == MOW_WIRE) {
-          motorMowEnable = true; //time to start the blade
+          setMotorMowEnable(true); //time to start the blade
           statusCurr = WIRE_MOWING;
           if (RaspberryPIUse) MyRpi.SendStatusToPi();
         }
       }
       else if (statusCurr == WIRE_MOWING) {
-        motorMowEnable = true; //time to start the blade
+        setMotorMowEnable(true); //time to start the blade
       }
       else {
         statusCurr = BACK_TO_STATION;
@@ -3552,7 +3575,7 @@ void Robot::setNextState(byte stateNew, byte dir) {
       if (statusCurr == TRACK_TO_START) {
         startByTimer = false; // cancel because we have reach the start point and avoid repeat search entry
         justChangeLaneDir = false; //the first lane need to be distance control
-        motorMowEnable = true; //time to start the blade
+        setMotorMowEnable(true); //time to start the blade
       }
 
       UseAccelLeft = 0;
@@ -4219,7 +4242,7 @@ void Robot::setNextState(byte stateNew, byte dir) {
 
 
     case STATE_ROLL_TO_FIND_YAW:  // roll slowly 720 deg until find the positive yaw, state will be changed by the IMU
-      if (stopMotorDuringCalib) motorMowEnable = false;//stop the mow motor
+      if (stopMotorDuringCalib) setMotorMowEnable(false, "stopMotorDuringCalib");//stop the mow motor
       UseAccelLeft = 1;
       UseBrakeLeft = 1;
       UseAccelRight = 1;
@@ -4281,12 +4304,12 @@ void Robot::setNextState(byte stateNew, byte dir) {
     case STATE_REMOTE:
       statusCurr = REMOTE;
       if (RaspberryPIUse) MyRpi.SendStatusToPi();
-      motorMowEnable = false;
+      setMotorMowEnable(false);
       break;
     case STATE_STATION: //stop immediatly
       areaInMowing = 1;
       //ignoreRfidTag = false;
-      motorMowEnable = false;
+      setMotorMowEnable(false);
       startByTimer = false;
       totalDistDrive = 0; //reset the tracking distance travel
       whereToResetSpeed = 50000; // initial value to 500 meters
@@ -4336,7 +4359,7 @@ void Robot::setNextState(byte stateNew, byte dir) {
       statusCurr = IN_ERROR;
       if (RaspberryPIUse) MyRpi.SendStatusToPi();
       setActuator(ACT_CHGRELAY, 0);
-      motorMowEnable = false;
+      setMotorMowEnable(false);
       UseAccelLeft = 0;
       UseBrakeLeft = 1;
       UseAccelRight = 0;
@@ -4379,7 +4402,7 @@ void Robot::setNextState(byte stateNew, byte dir) {
       OdoRampCompute();
 
       ShowMessageln(F("XX STATE_PERI_FIND - stop mow motor"));
-      motorMowEnable = false;
+      setMotorMowEnable(false);
       break;
 
 
@@ -4660,7 +4683,7 @@ void Robot::checkCurrent() {
     if ((lastTimeMotorMowStuck != 0) && (millis() >= lastTimeMotorMowStuck + 60000)) { // wait 60 seconds before switching on again
       errorCounter[ERR_MOW_SENSE] = 0;
       if ((stateCurr == STATE_FORWARD_ODO)) { //avoid risq of restart not allowed
-        motorMowEnable = true;
+        setMotorMowEnable(true);
         lastTimeMotorMowStuck = 0;
         ShowMessageln("Time to restart the mow motor after the 60 secondes pause");
       }
@@ -4668,7 +4691,7 @@ void Robot::checkCurrent() {
   }
   //need to check this
   if (motorMowSenseCounter >= 10) { //ignore motorMowPower for 1 seconds
-    motorMowEnable = false;
+    setMotorMowEnable(false);
     ShowMessageln("Motor mow power overload. Motor STOP and try to start again after 1 minute");
     addErrorCounter(ERR_MOW_SENSE);
     lastTimeMotorMowStuck = millis();
@@ -5035,20 +5058,20 @@ void Robot::checkSonarPeriTrack() {
     }
   */
   if (sonarRightUse) sonarDistRight = readSensor(SEN_SONAR_RIGHT);
-  else sonarDistRight = NO_ECHO;
+  else sonarDistRight = US_NO_ECHO;
   //if (sonarLeftUse) sonarDistLeft = readSensor(SEN_SONAR_LEFT);
   //if (sonarCenterUse) sonarDistCenter = readSensor(SEN_SONAR_CENTER);
 
-  //if (sonarDistCenter < 30 || sonarDistCenter > 150) sonarDistCenter = NO_ECHO; //need to be adjust if sonar is directly in front of mower 25Cm in my case
-  if (sonarDistRight < 30 || sonarDistRight > 150) sonarDistRight = NO_ECHO; // Object is too close to the sensor JSN SR04T can't read <20 CM . Sensor value is useless
-  //if (sonarDistLeft < 30 || sonarDistLeft  > 150) sonarDistLeft = NO_ECHO;
+  //if (sonarDistCenter < 30 || sonarDistCenter > 150) sonarDistCenter = US_NO_ECHO; //need to be adjust if sonar is directly in front of mower 25Cm in my case
+  if (sonarDistRight < 30 || sonarDistRight > 150) sonarDistRight = US_NO_ECHO; // Object is too close to the sensor JSN SR04T can't read <20 CM . Sensor value is useless
+  //if (sonarDistLeft < 30 || sonarDistLeft  > 150) sonarDistLeft = US_NO_ECHO;
 
   //disabled the left sonar during tracking with this line
-  sonarDistLeft = NO_ECHO;
-  sonarDistCenter = NO_ECHO;
+  sonarDistLeft = US_NO_ECHO;
+  sonarDistCenter = US_NO_ECHO;
 
-  if ((sonarDistRight != NO_ECHO) && (sonarDistRight < (unsigned int)sonarTriggerBelow))  {
-    //if (((sonarDistCenter != NO_ECHO) && (sonarDistCenter < sonarTriggerBelow))  ||  ((sonarDistRight != NO_ECHO) && (sonarDistRight < sonarTriggerBelow)) ||  ((sonarDistLeft != NO_ECHO) && (sonarDistLeft < sonarTriggerBelow))  ) {
+  if ((sonarDistRight != US_NO_ECHO) && (sonarDistRight < (unsigned int)sonarTriggerBelow))  {
+    //if (((sonarDistCenter != US_NO_ECHO) && (sonarDistCenter < sonarTriggerBelow))  ||  ((sonarDistRight != NO_ECHO) && (sonarDistRight < sonarTriggerBelow)) ||  ((sonarDistLeft != NO_ECHO) && (sonarDistLeft < sonarTriggerBelow))  ) {
     //setBeeper(1000, 50, 50, 60, 60);
     ShowMessageln("Sonar reduce speed on tracking for 2 meters");
     whereToResetSpeed =  totalDistDrive + 200; // when a speed tag is read it's where the speed is back to maxpwm value
@@ -5069,19 +5092,19 @@ void Robot::checkSonar() {
   nextTimeCheckSonar = millis() + 100;
   sonarSpeedCoeff = 1;
   if (sonarRightUse) sonarDistRight = readSensor(SEN_SONAR_RIGHT);
-  else sonarDistRight = NO_ECHO;
+  else sonarDistRight = US_NO_ECHO;
   if (sonarLeftUse) sonarDistLeft = readSensor(SEN_SONAR_LEFT);
-  else sonarDistLeft = NO_ECHO ;
+  else sonarDistLeft = US_NO_ECHO ;
   if (sonarCenterUse) sonarDistCenter = readSensor(SEN_SONAR_CENTER);
-  else sonarDistCenter = NO_ECHO;
+  else sonarDistCenter = US_NO_ECHO;
 
   if (stateCurr == STATE_OFF) return; //avoid the mower move when testing
 
-  if (sonarDistCenter < 25 || sonarDistCenter > 90) sonarDistCenter = NO_ECHO; //need to be adjust if sonar is directly in front of mower 25Cm in my case
-  if (sonarDistRight < 25 || sonarDistRight > 90) sonarDistRight = NO_ECHO; // Object is too close to the sensor JSN SR04T can't read <20 CM . Sensor value is useless
-  if (sonarDistLeft < 25 || sonarDistLeft  > 90) sonarDistLeft = NO_ECHO;
+  if (sonarDistCenter < 25 || sonarDistCenter > 90) sonarDistCenter = US_NO_ECHO; //need to be adjust if sonar is directly in front of mower 25Cm in my case
+  if (sonarDistRight < 25 || sonarDistRight > 90) sonarDistRight = US_NO_ECHO; // Object is too close to the sensor JSN SR04T can't read <20 CM . Sensor value is useless
+  if (sonarDistLeft < 25 || sonarDistLeft  > 90) sonarDistLeft = US_NO_ECHO;
 
-  if (((sonarDistCenter != NO_ECHO) && (sonarDistCenter < (unsigned int)sonarTriggerBelow))  ||  ((sonarDistRight != NO_ECHO) && (sonarDistRight < (unsigned int)sonarTriggerBelow)) ||  ((sonarDistLeft != NO_ECHO) && (sonarDistLeft < (unsigned int)sonarTriggerBelow))  ) {
+  if (((sonarDistCenter != US_NO_ECHO) && (sonarDistCenter < (unsigned int)sonarTriggerBelow))  ||  ((sonarDistRight != US_NO_ECHO) && (sonarDistRight < (unsigned int)sonarTriggerBelow)) ||  ((sonarDistLeft != US_NO_ECHO) && (sonarDistLeft < (unsigned int)sonarTriggerBelow))  ) {
     setBeeper(1000, 50U, 50U, 60U, 60U);
     nextTimeCheckSonar = millis() + 1500;  //wait before next reading
 
@@ -5092,7 +5115,7 @@ void Robot::checkSonar() {
     //*********************************************************************************
     if ((stateCurr == STATE_FORWARD_ODO) || (stateCurr == STATE_PERI_FIND) || (stateCurr == STATE_MOW_SPIRALE)) {
       //avoid the mower move when testing
-      if ((sonarDistCenter != NO_ECHO) && (sonarDistCenter < (unsigned int)sonarTriggerBelow)) {  //center
+      if ((sonarDistCenter != US_NO_ECHO) && (sonarDistCenter < (unsigned int)sonarTriggerBelow)) {  //center
         //bber200
         if (!sonarLikeBumper) {
           sonarSpeedCoeff = 0.80;
@@ -5107,7 +5130,7 @@ void Robot::checkSonar() {
           return;
         }
       }
-      if ((sonarDistRight != NO_ECHO) && (sonarDistRight < (unsigned int)sonarTriggerBelow)) {  //right
+      if ((sonarDistRight != US_NO_ECHO) && (sonarDistRight < (unsigned int)sonarTriggerBelow)) {  //right
         if (!sonarLikeBumper) {
           sonarSpeedCoeff = 0.70;
           nextTimeCheckSonar = millis() + 3000;
@@ -5121,7 +5144,7 @@ void Robot::checkSonar() {
           return;
         }
       }
-      if ((sonarDistLeft != NO_ECHO) && (sonarDistLeft < (unsigned int)sonarTriggerBelow)) {  //LEFT
+      if ((sonarDistLeft != US_NO_ECHO) && (sonarDistLeft < (unsigned int)sonarTriggerBelow)) {  //LEFT
         if (!sonarLikeBumper) {
           sonarSpeedCoeff = 0.70;
           nextTimeCheckSonar = millis() + 3000;
@@ -5165,7 +5188,7 @@ void Robot::checkTilt() {
 
 
       ShowMessageln("Motor mow STOP (checkTilt) start again after 1 minute");
-      motorMowEnable = false;
+      setMotorMowEnable(false);
       lastTimeMotorMowStuck = millis();
       reverseOrBidir(rollDir);
 
@@ -5489,8 +5512,7 @@ void Robot::loop()  {
       imuDriveHeading = imu.ypr.yaw / PI * 180;
       motorControlOdo();
             
-      ShowMessageln(F("XX STATE_OFF - stop mow motor"));
-      motorMowEnable = false; //to stop mow motor in OFF mode by pressing OFF again (the one shot OFF is bypass)
+      setMotorMowEnable(false, "STATE_OFF");
       checkSonar();  // only for test never use or the mower can't stay into the station
       readDHT22();
       checkBattery();
@@ -6041,7 +6063,7 @@ void Robot::loop()  {
           ShowMessageln ("Warning can t roll to find yaw The Compass is certainly not calibrate correctly ");
           ShowMessageln ("Continue to mow in random mode without compass ");
         }
-        if (stopMotorDuringCalib) motorMowEnable = true;//restart the mow motor
+        if (stopMotorDuringCalib) setMotorMowEnable(true);//restart the mow motor
         endTimeCalibration = millis();
         compassYawMedian.clear();
         accelGyroYawMedian.clear();
@@ -6423,7 +6445,7 @@ void Robot::loop()  {
       }
       if (millis() > endTimeCalibration) { //we have wait enought and the result is not OK start to mow in random mode or make a total calibration
         mowPatternCurr = MOW_RANDOM;
-        if (stopMotorDuringCalib) motorMowEnable = true;//stop the mow motor
+        if (stopMotorDuringCalib) setMotorMowEnable(true);//stop the mow motor
         ShowMessageln("WAIT to stop Drift of GYRO : is not OK mowing Drift too important");
         nextTimeToDmpAutoCalibration = millis() + delayBetweenTwoDmpAutocalib * 1000;
         setBeeper(0, 0, 0, 0, 0);
@@ -6971,4 +6993,17 @@ void Robot::loop()  {
     ShowMessageln(ReadDuration);
   */
 
+}
+
+void Robot::setMotorMowEnable(bool mowEnable, const String prefix)
+{
+  if (motorMowEnable != mowEnable) {
+    if (mowEnable) {
+      ShowMessageln(prefix + " switch mow motor ON");
+    }
+    else {
+      ShowMessageln(prefix + " switch mow motor ON");
+    }
+  }
+  motorMowEnable = mowEnable;
 }

@@ -29,7 +29,7 @@
 #include <Wire.h>  
 
 
-char *dayOfWeek[] = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
+const char *dayOfWeek[] = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
 
 // ---- print helpers ------------------------------------------------------------
 
@@ -238,7 +238,6 @@ boolean setDS1307(datetime_t &dt){
 }
 
 boolean checkAT24C32() {
-  byte b = 0;
   int r = 0;
   unsigned int address = 0;
   Wire.beginTransmission(AT24C32_ADDRESS);
@@ -249,7 +248,7 @@ boolean checkAT24C32() {
     if (Wire.endTransmission() == 0) {
       Wire.requestFrom(AT24C32_ADDRESS, 1);
       while (Wire.available() > 0 && r < 1) {        
-        b = (byte)Wire.read();        
+        Wire.read();        
         r++;
       }
     }

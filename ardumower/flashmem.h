@@ -59,7 +59,7 @@ template <class T> int eereadwrite(boolean readflag, int &ee, T& value)
 }
 
 
-int eereadwriteString(boolean readflag, int &ee, String& value);
+void eereadwriteString(boolean readflag, int &ee, String& value);
 
 
 #endif
