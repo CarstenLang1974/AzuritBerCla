@@ -51,7 +51,7 @@ void GPS::init() {
   };
   // send configuration data in UBX protocol
   Console.println("Send config sentence");
-  for (int i = 0; i < sizeof(UBLOX_INIT); i++) {
+  for (uint32_t i = 0; i < sizeof(UBLOX_INIT); i++) {
     GpsPort.write( pgm_read_byte(UBLOX_INIT + i) );
     delay(5); // simulating a 38400baud pace (or less), otherwise commands are not accepted by the device.
   }

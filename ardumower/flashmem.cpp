@@ -106,7 +106,7 @@ boolean FlashClass::write(uint32_t address, byte value) {
 
 
 boolean FlashClass::write(uint32_t address, byte *data, uint32_t dataLength) {
-  for (int i=0; i < dataLength; i++){
+  for (uint32_t i=0; i < dataLength; i++){
     write(address + i, data[i]);
   }
   return true;

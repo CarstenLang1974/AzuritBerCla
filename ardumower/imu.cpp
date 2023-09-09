@@ -177,7 +177,8 @@ float Complementary2(float newAngle, float newRate, int looptime, float angle) {
   float k = 10;
   float dtc2 = float(looptime) / 1000.0;
   float x1 = (newAngle -   angle) * k * k;
-  float y1 = dtc2 * x1 + y1;
+  //float y1 = dtc2 * x1 + y1;
+  float y1 = dtc2 * x1;
   float x2 = y1 + (newAngle -   angle) * 2 * k + newRate;
   angle = dtc2 * x2 + angle;
   return angle;

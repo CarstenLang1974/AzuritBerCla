@@ -1,9 +1,5 @@
 #include "pinman.h"
 
-
-//#define PWM_FREQUENCY 3900
-//#define TC_FREQUENCY 3900
-
 #define PWM_FREQUENCY 10000
 #define TC_FREQUENCY 10000
 

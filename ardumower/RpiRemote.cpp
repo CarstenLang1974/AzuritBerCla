@@ -849,7 +849,6 @@ void RpiRemote::writePi(String stringLine) {
 void RpiRemote::readPi() {
   if (!RaspberryPIPort.available())
     return;
-  int StartTrans = millis();
   while (RaspberryPIPort.available()) {
     watchdogReset();
     char c = RaspberryPIPort.read();
@@ -991,9 +990,9 @@ void RpiRemote::receive_request() {
   // Console.print("Receive a request  --> ");
   // Console.println(buf);
   String messageType;
-  int frequency ;
-  int trigger ;
-  int max_repetition ;
+  int frequency = 1;
+  int trigger = 0;
+  int max_repetition = 10;
   int counter = 0;
   char token[12];
   Tokeniser tok(buf, ',');
@@ -1060,7 +1059,7 @@ void RpiRemote::receive_command() {
   //Console.print("Receive a Actuator command  --> ");
   //Console.println(buf);
   String ActuatorName;
-  int value ;
+  int value = 0;
 
   int counter = 0;
   char token[12];
@@ -1086,7 +1085,7 @@ void RpiRemote::readWrite_var() {  //can be use to change the value of 4 variabl
   //Console.print("Receive Read Write variable --> ");
   //Console.println(buf);
 
-  char readOrWrite; //flag r or w
+  char readOrWrite = 'r'; //flag r or w
   char variable_name[4][30];
   char received_value[4][30];
   int counter = 0;
@@ -1220,9 +1219,9 @@ void RpiRemote::readWrite_setting()
   //Console.print("Receive Read Write setting command  --> ");
   //Console.println(buf);
   String Setting_page;
-  char readOrWrite; //flag r or w
-  int nr_page ;
-  float val[9]; // 10 values from 0 to 9
+  char readOrWrite = 'r'; //flag r or w
+  int nr_page = 0;
+  float val[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // 10 values from 0 to 9
   int counter = 0;
   char token[12];
   Tokeniser tok(buf, ',');
@@ -1506,7 +1505,7 @@ void RpiRemote::read_pfo()
 {
   //Console.print("Receive Pfod command  --> ");
   //Console.println(buf);
-  float val[2] ;
+  float val[3] = {0.0, 0.0, 0.0} ;
   //float value1 ;
   //float value2;
   //float value3;

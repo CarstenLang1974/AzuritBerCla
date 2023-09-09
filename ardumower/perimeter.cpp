@@ -73,7 +73,7 @@ PerimeterClass::PerimeterClass() {
 void PerimeterClass::changeArea(byte areaInMowing) {
   Console.print("Change to Area : ");
   Console.println(areaInMowing);
-  for (int uu = 0 ; uu <= 128; uu++) { //clear the area
+  for (int uu = 0 ; uu < 128; uu++) { //clear the area
     sigcode_norm[uu] = 0;
     sigcode_diff[uu] = 0;
   }
@@ -303,7 +303,7 @@ boolean PerimeterClass::signalTimedOut() {
 
 boolean PerimeterClass::signalTimedOut(byte idx) {
   if (getSmoothMagnitude(idx) < timedOutIfBelowSmag) return true;
-  if (millis() - lastInsideTime[idx] > timeOutSecIfNotInside * 1000) return true;
+  if (millis() - lastInsideTime[idx] > (uint32_t)timeOutSecIfNotInside * 1000u) return true;
   return false;
 }
 
