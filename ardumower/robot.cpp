@@ -864,7 +864,6 @@ void Robot::loadUserSettings() {
   loadSaveUserSettings(true);
 }
 
-
 void Robot::printSettingSerial() {
 
   // ------- wheel motors ---------------------------------------------------------
@@ -2354,17 +2353,19 @@ void Robot::resetIdleTime() {
 
 void Robot::setBeeper(int totalDuration, byte OnDuration, byte OffDuration, byte frequenceOn, byte frequenceOff, const String prefix )
 { // Set the variable for the beeper
-  ShowMessage(prefix);
-  ShowMessage(" setBeeper ");
-  ShowMessage(totalDuration);
-  ShowMessage(", ");
-  ShowMessage(OnDuration);
-  ShowMessage(", ");
-  ShowMessage(OffDuration);
-  ShowMessage(", ");
-  ShowMessage(frequenceOn);
-  ShowMessage(", ");
-  ShowMessageln(frequenceOff);
+  if (totalDuration > 0) {
+    ShowMessage(prefix);
+    ShowMessage(" setBeeper ");
+    ShowMessage(totalDuration);
+    ShowMessage(", ");
+    ShowMessage(OnDuration);
+    ShowMessage(", ");
+    ShowMessage(OffDuration);
+    ShowMessage(", ");
+    ShowMessage(frequenceOn);
+    ShowMessage(", ");
+    ShowMessageln(frequenceOff);
+  }
 
   if (beepEnable) {
     endBeepTime = millis() + totalDuration * 10;
@@ -5105,7 +5106,7 @@ void Robot::checkSonar() {
   if (sonarDistLeft < 25 || sonarDistLeft  > 90) sonarDistLeft = US_NO_ECHO;
 
   if (((sonarDistCenter != US_NO_ECHO) && (sonarDistCenter < (unsigned int)sonarTriggerBelow))  ||  ((sonarDistRight != US_NO_ECHO) && (sonarDistRight < (unsigned int)sonarTriggerBelow)) ||  ((sonarDistLeft != US_NO_ECHO) && (sonarDistLeft < (unsigned int)sonarTriggerBelow))  ) {
-    setBeeper(1000, 50U, 50U, 60U, 60U);
+    setBeeper(1000, 50U, 50U, 60U, 60U, "sonar triggered");
     nextTimeCheckSonar = millis() + 1500;  //wait before next reading
 
     //**************************if sonar during spirale reinit spirale variable*****************
