@@ -3050,6 +3050,10 @@ void Robot::readSensors() {
       //use smooth to avoid big area transition, in the middle of the area with noise the mag can change from + to -
       smoothPeriMag = perimeter.getSmoothMagnitude(0);
       if (smoothPeriMag > perimeterTriggerMinSmag) {
+        ShowMessage(F("smoothPeriMag: "));
+        ShowMessage(smoothPeriMag);
+        ShowMessage(F(" > perimeterTriggerMinSmag: "));
+        ShowMessageln(perimeterTriggerMinSmag);
         perimeterTriggerTime = millis();
       }
       else
@@ -5005,7 +5009,7 @@ void Robot::checkPerimeterBoundary() {
     if (perimeterTriggerTime != 0) {
       if (millis() >= perimeterTriggerTime) {
         perimeterTriggerTime = 0;
-        ShowMessageln("Pourquoi je suis la ?? ?? ?? ?? ?? ?? ?? ?? ");
+        ShowMessageln("ROLL switch to POUTREV on perimeterTriggerTime");
         setMotorPWM( 0, 0, false );
         setNextState(STATE_PERI_OUT_REV, rollDir);
         return;
@@ -5626,7 +5630,10 @@ void Robot::loop()  {
 
     case STATE_ESCAPE_LANE:
       motorControlOdo();
-      if ((odometryRight >= stateEndOdometryRight) || (odometryLeft >= stateEndOdometryLeft) ) setNextState(STATE_PERI_OUT_STOP, rollDir);
+      if ((odometryRight >= stateEndOdometryRight) || (odometryLeft >= stateEndOdometryLeft) ) {
+        ShowMessageln ("switch to POUTSTOP on odometry");
+        setNextState(STATE_PERI_OUT_STOP, rollDir);
+      }
       checkCurrent();
       checkBumpers();
       checkDrop();                                                                                                                            // Dropsensor - Absturzsensor
@@ -6067,12 +6074,16 @@ void Robot::loop()  {
         findedYaw = yawToFind;
         nextTimeToDmpAutoCalibration = millis() + 21600 * 1000; //do not try to calibration for the next 6 hours
         setBeeper(0, 0, 0, 0, 0);
-        if (perimeterInside) setNextState(STATE_ACCEL_FRWRD, rollDir);
-        else setNextState(STATE_PERI_OUT_REV, rollDir);
+        if (perimeterInside) {
+          ShowMessageln("switch to ACCFWD on perimeter inside");
+          setNextState(STATE_ACCEL_FRWRD, rollDir);
+        }
+        else { 
+          ShowMessageln("switch to POUTREV on perimeter outside");
+          setNextState(STATE_PERI_OUT_REV, rollDir);
+        }
         return;
       }
-
-
       break;
 
     //not use actually
@@ -6801,15 +6812,15 @@ void Robot::loop()  {
       }
       break;
 
-
-
-
     case STATE_PERI_OUT_FORW:
       motorControlOdo();
-      if (!perimeterInside) setNextState(STATE_PERI_OUT_ROLL_TOINSIDE, rollDir);
+      if (!perimeterInside) {
+        ShowMessageln ("switch to ROLLTOIN on perimeter outside");
+        setNextState(STATE_PERI_OUT_ROLL_TOINSIDE, rollDir);
+      }
       if ((millis() > (stateStartTime + MaxOdoStateDuration)) || (odometryRight >= stateEndOdometryRight) || (odometryLeft >= stateEndOdometryLeft) ) {
+        ShowMessageln ("switch to FWDODO on timeout");
         setNextState(STATE_FORWARD_ODO, rollDir);
-
       }
       break;
 
