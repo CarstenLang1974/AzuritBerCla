@@ -2353,7 +2353,11 @@ void Robot::resetIdleTime() {
 
 void Robot::setBeeper(int totalDuration, byte OnDuration, byte OffDuration, byte frequenceOn, byte frequenceOff, const String prefix )
 { // Set the variable for the beeper
-  if (totalDuration > 0) {
+  bool bChange =  (OnDuration != beepOnDuration) || 
+                  (OffDuration != beepOffDuration) ||
+                  (frequenceOn != beepfrequenceOn) || 
+                  (frequenceOff != beepfrequenceOff);
+  if ((totalDuration > 0) && bChange) {
     ShowMessage(prefix);
     ShowMessage(" setBeeper ");
     ShowMessage(totalDuration);
