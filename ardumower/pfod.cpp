@@ -242,7 +242,7 @@ void RemoteControl::sendSettingsMenu(boolean update) {
   }
   else
   {
-    serialPort->print(F("|sz!~Save settings (state OFF required)|s1~Motor|s2~Mow|s3~Bumper/Button|s4~Sonar|s5~Perimeter|s6~Lawn sensor|s7~IMU|s8~Raspberry"));
+    serialPort->print(F("|a!<bg gy>~(Save settings disabled, state OFF required)|s1~Motor|s2~Mow|s3~Bumper/Button|s4~Sonar|s5~Perimeter|s6~Lawn sensor|s7~IMU|s8~Raspberry"));
     serialPort->println(F("|s9~Battery|s10~Station|s11~Odometry|s13~Rain Temp Humid|s14~GPS|s15~DROP|s16~ByLane Setting|s17~RFID|i~Timer|s12~Date/time|sx~Factory settings}"));
   }
 }

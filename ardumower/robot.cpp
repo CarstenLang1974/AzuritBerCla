@@ -2353,11 +2353,11 @@ void Robot::resetIdleTime() {
 
 void Robot::setBeeper(int totalDuration, byte OnDuration, byte OffDuration, byte frequenceOn, byte frequenceOff, const String prefix )
 { // Set the variable for the beeper
-  bool bChange =  (OnDuration != beepOnDuration) || 
-                  (OffDuration != beepOffDuration) ||
-                  (frequenceOn != beepfrequenceOn) || 
-                  (frequenceOff != beepfrequenceOff);
-  if ((totalDuration > 0) && bChange) {
+  bool bChange =  ((OnDuration*10) != beepOnDuration) || 
+                  ((OffDuration*10) != beepOffDuration) ||
+                  ((frequenceOn*10) != beepfrequenceOn) || 
+                  ((frequenceOff*10) != beepfrequenceOff);
+  if (bChange) {
     ShowMessage(prefix);
     ShowMessage(" setBeeper ");
     ShowMessage(totalDuration);
@@ -2371,27 +2371,18 @@ void Robot::setBeeper(int totalDuration, byte OnDuration, byte OffDuration, byte
     ShowMessageln(frequenceOff);
   }
 
-  if (beepEnable) {
-    endBeepTime = millis() + totalDuration * 10;
-    beepOnDuration = OnDuration * 10;
-    beepOffDuration = OffDuration * 10;
-    beepfrequenceOn = frequenceOn * 10;
-    beepfrequenceOff = frequenceOff * 10;
-  } 
-  else {
-    endBeepTime = millis();
-    beepOnDuration = 0;
-    beepOffDuration = 0;
-    beepfrequenceOn = 0;
-    beepfrequenceOff = 0;
-  }
+  endBeepTime = millis() + totalDuration * 10;
+  beepOnDuration = OnDuration * 10;
+  beepOffDuration = OffDuration * 10;
+  beepfrequenceOn = frequenceOn * 10;
+  beepfrequenceOff = frequenceOff * 10;
 }
 
 
 void Robot::beeper() {  //beeper avoid to use the delay() fonction to not freeze the DUE
   if (millis() < nextTimeBeeper) return;
   nextTimeBeeper = millis() + 50; //maybe test with 100 if loops is too low
-  if (((beepOnDuration == 0) && (beepOffDuration == 0)) || (millis() > endBeepTime)) {
+  if (!beepEnable || ((beepOnDuration == 0) && (beepOffDuration == 0)) || (millis() > endBeepTime)) {
     Buzzer.noTone();
     beepOnOFFDuration = 0;
   }
