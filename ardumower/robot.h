@@ -29,7 +29,6 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-
 //#include <Servo.h>  // for RC brushless contoller
 #include "drivers.h"
 #include "pid.h"
@@ -43,7 +42,6 @@
 //#include "QueueList.h"
 //#include <limits.h>
 
-
 /*
   Generic robot class - subclass to implement concrete hardware!
 
@@ -51,7 +49,6 @@
 
 // code version
 #define VER "1.82-Azuritber GY-87"
-
 
 // sensors
 enum {
@@ -209,12 +206,10 @@ enum { MOW_RANDOM, MOW_LANES, MOW_WIRE, MOW_ZIGZAG };
 // console mode
 enum { CONSOLE_SENSOR_COUNTERS, CONSOLE_SENSOR_VALUES, CONSOLE_PERIMETER, CONSOLE_OFF , CONSOLE_TRACKING };
 
-
-
 #define MAX_TIMERS 5
-
 #define BATTERY_SW_OFF -1
 
+// robot class serves as Base Class for Mower!
 class Robot
 {
   public:
@@ -339,12 +334,8 @@ class Robot
     };
 
     struct rfid_list;
-
     struct rfid_list *head = NULL;
-
     struct rfid_list *ptr = NULL;
-
-
 
     // --------- wheel motor state ----------------------------
     // wheel motor speed ( <0 backward, >0 forward); range -motorSpeedMaxRpm..motorSpeedMaxRpm
@@ -382,8 +373,6 @@ class Robot
 
     int motorLeftPWMCurr ; // current speed
     int motorRightPWMCurr ;
-    //float motorLeftPWMCurr ; // current speed
-    //float motorRightPWMCurr ;
     int motorRightSenseADC ;
     int motorLeftSenseADC ;
     float motorLeftSenseCurrent ;
@@ -549,9 +538,6 @@ class Robot
     RunningMedian perimeterMedian = RunningMedian(67); //perimeter is read each 15 ms so 1 second
 
 
-    //bb 5
-
-
     float yawToFind;
     float findedYaw;
     float yawSet1;
@@ -583,11 +569,8 @@ class Robot
     float maxDriftPerSecond;
 
     // ------- perimeter state --------------------------
-
-    //bb
     PerimeterClass perimeter;
 
-    // Perimeter perimeter;
     boolean perimeterUse       ;      // use perimeter?
     //int perimeterOutRollTimeMax ;  //free but conserve for eeprom recovery
     //int perimeterOutRollTimeMin ;   //free but conserve for eeprom recovery
@@ -609,7 +592,6 @@ class Robot
     boolean trakBlockInnerWheel;
     float perimeterNoise; //compute each 1 seconde the diff between max and min Mag value help on position of motor wire and ferrite in the chassis
 
-    //add BB
     int leftSpeedperi;
     int rightSpeedperi;
     int lastLeftSpeedperi;
@@ -707,13 +689,7 @@ class Robot
     boolean userSwitch2       ;       // user-defined switch 2 (default value)
     boolean userSwitch3       ;       // user-defined switch 3 (default value)
 
-
-
-
-
-
-
-    // --------- charging -------------------------------
+   // --------- charging -------------------------------
 
     boolean batMonitor ;              // monitor battery and charge voltage?
     float batGoHomeIfBelow ;     // drive home voltage (Volt)
@@ -750,7 +726,7 @@ class Robot
     unsigned long delayToReadVoltageStation; //wait before read the voltage
     int statsBatteryChargingCounter;
     int statsBatteryChargingCounterTotal;
-    float  statsBatteryChargingCapacityTrip;
+    float statsBatteryChargingCapacityTrip;
     float statsBatteryChargingCapacityTotal;
     float statsBatteryChargingCapacityAverage;
     float lastTimeBatCapacity;

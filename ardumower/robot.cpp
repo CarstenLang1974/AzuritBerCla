@@ -44,10 +44,6 @@
 
 //bber200
 
-
-
-
-
 #define MAGIC 52  //value 52 is only use to know if the eeprom is OK : 52 is save and read at first byte of memory location
 #define ADDR_USER_SETTINGS 2000 //New adress to avoid issue if Azurit1.09 is already instaled
 #define ADDR_ERR_COUNTERS 500 //same adress as azurit
@@ -68,31 +64,103 @@ RpiRemote MyRpi;
 //Setting for Screen -----------------------------------
 Screen MyScreen;
 
-
-
-const char* stateNames[] = {"OFF", "RC", "FORW", "ROLL", "REV", "CIRC", "ERR", "PFND", "PTRK", "PROL", "PREV", "STAT", "CHARG", "STCHK", "STREV",
-                            "STROL", "STFOR", "MANU", "ROLW", "POUTFOR", "POUTREV", "POUTROLL", "POBSREV", "POBSROLL", "POBSFRWD", "POBSCIRC", "NEXTLANE", "POUTSTOP", "LANEROL1", "LANEROL2",
-                            "ROLLTOIN", "WAITREPEAT", "FRWODO", "TESTCOMPAS", "ROLLTOTRACK",
-                            "STOPTOTRACK", "AUTOCALIB", "ROLLTOFINDYAW", "TESTMOTOR", "FINDYAWSTOP", "STOPONBUMPER",
-                            "STOPCALIB", "SONARTRIG", "STOPSPIRAL", "MOWSPIRAL", "ROT360", "NEXTSPIRE", "ESCAPLANE",
-                            "TRACKSTOP", "ROLLTOTAG", "STOPTONEWAREA", "ROLL1TONEWAREA", "DRIVE1TONEWAREA", "ROLL2TONEWAREA", "DRIVE2TONEWAREA", "WAITSIG2", "STOPTONEWAREA", "ROLLSTOPTOTRACK",
-                            "STOPTOFASTSTART", "CALIBMOTORSPEED", "ACCELFRWRD"
+const char* stateNames[] = {"OFF",        // STATE_OFF
+                            "RC",         // STATE_REMOTE
+                            "FORW",       // STATE_FORWARD
+                            "ROLL",       // STATE_ROLL
+                            "REV",        // STATE_REVERSE
+                            "CIRC",       // STATE_CIRCLE 
+                            "ERR",        // STATE_ERROR
+                            "PFND",       // STATE_PERI_FIND
+                            "PTRK",       // STATE_PERI_TRACK
+                            "PROL",       // STATE_PERI_ROLL
+                            "PREV",       // STATE_PERI_REV
+                            "STAT",       // STATE_STATION
+                            "CHARG",      // STATE_STATION_CHARGING
+                            "STCHK",      // STATE_STATION_CHECK 
+                            "STREV",      // STATE_STATION_REV
+                            "STROL",      // STATE_STATION_ROLL 
+                            "STFOR",      // STATE_STATION_FORW
+                            "MANU",       // STATE_MANUAL
+                            "ROLW",       // STATE_ROLL_WAIT
+                            "POUTFOR",    // STATE_PERI_OUT_FORW 
+                            "POUTREV",    // STATE_PERI_OUT_REV
+                            "POUTROLL",   // STATE_PERI_OUT_ROLL
+                            "POBSREV",    // STATE_PERI_OBSTACLE_REV
+                            "POBSROLL",   // STATE_PERI_OBSTACLE_ROLL
+                            "POBSFRWD",   // STATE_PERI_OBSTACLE_FORW
+                            "POBSCIRC",   // STATE_PERI_OBSTACLE_AVOID
+                            "NEXTLANE",   // STATE_NEXT_LANE_FORW
+                            "POUTSTOP",   // STATE_PERI_OUT_STOP
+                            "LANEROL1",   // STATE_PERI_OUT_LANE_ROLL1
+                            "LANEROL2",   // STATE_PERI_OUT_LANE_ROLL2
+                            "ROLLTOIN",   // STATE_PERI_OUT_ROLL_TOINSIDE
+                            "WAITREPEAT", // STATE_WAIT_AND_REPEAT 
+                            "FRWODO",     // STATE_FORWARD_ODO
+                            "TESTCOMPAS", // STATE_TEST_COMPASS 
+                            "ROLLTOTRACK",// STATE_PERI_OUT_ROLL_TOTRACK
+                            "STOPTOTRACK",// STATE_PERI_STOP_TOTRACK 
+                            "AUTOCALIB",  // STATE_AUTO_CALIBRATE
+                            "ROLLTOFINDYAW", // STATE_ROLL_TO_FIND_YAW
+                            "TESTMOTOR",  // STATE_TEST_MOTOR
+                            "FINDYAWSTOP", // STATE_STOP_TO_FIND_YAW 
+                            "STOPONBUMPER", // STATE_STOP_ON_BUMPER
+                            "STOPCALIB",  // STATE_STOP_CALIBRATE
+                            "SONARTRIG",  // STATE_SONAR_TRIG 
+                            "STOPSPIRAL", // STATE_STOP_BEFORE_SPIRALE 
+                            "MOWSPIRAL",  // STATE_MOW_SPIRALE
+                            "ROT360",     // STATE_ROTATE_RIGHT_360
+                            "NEXTSPIRE",  // STATE_NEXT_SPIRE 
+                            "ESCAPLANE",  // STATE_ESCAPE_LANE
+                            "TRACKSTOP",  // STATE_PERI_STOP_TOROLL 
+                            "ROLLTOTAG",  // STATE_ROLL_TONEXTTAG 
+                            "STOPTONEWAREA", // STATE_PERI_STOP_TO_NEWAREA
+                            "ROLL1TONEWAREA", // STATE_ROLL1_TO_NEWAREA 
+                            "DRIVE1TONEWAREA", // STATE_DRIVE1_TO_NEWAREA 
+                            "ROLL2TONEWAREA", // STATE_ROLL2_TO_NEWAREA
+                            "DRIVE2TONEWAREA", // STATE_DRIVE2_TO_NEWAREA 
+                            "WAITSIG2", // STATE_WAIT_FOR_SIG2
+                            "STOPTONEWAREA", // STATE_STOP_TO_NEWAREA
+                            "ROLLSTOPTOTRACK", // STATE_PERI_OUT_STOP_ROLL_TOTRACK
+                            "STOPTOFASTSTART", // STATE_PERI_STOP_TO_FAST_START
+                            "CALIBMOTORSPEED", // STATE_CALIB_MOTOR_SPEED
+                            "ACCELFRWRD", // STATE_ACCEL_FRWRD
+                            "ENDLSTOP" // STATE_ENDLANE_STOP
                            };
 
-const char* statusNames[] = {"WAIT", "NORMALMOWING", "SPIRALEMOWING", "BACKTOSTATION", "TRACKTOSTART", "MANUAL", "REMOTE", "ERROR", "STATION", "TESTING", "SIGWAIT" , "WIREMOWING"
+const char* statusNames[] = {"WAIT", 
+                             "NORMALMOWING", 
+                             "SPIRALEMOWING", 
+                             "BACKTOSTATION", 
+                             "TRACKTOSTART", 
+                             "MANUAL", 
+                             "REMOTE", 
+                             "ERROR", 
+                             "STATION", 
+                             "TESTING", 
+                             "SIGWAIT" , 
+                             "WIREMOWING"
                             };
 
-
 const char* mowPatternNames[] = {"RAND", "LANE",  "WIRE" , "ZIGZAG"};
-const char* consoleModeNames[] = {"sen_counters", "sen_values", "perimeter", "off", "Tracking"};
-const char* rfidToDoNames[] = {"NOTHING", "RTS", "FAST_START", "NEW_AREA", "SPEED", "AREA1", "AREA2", "AREA3"};
+const char* consoleModeNames[] = {"sen_counters", 
+                                  "sen_values", 
+                                  "perimeter", 
+                                  "off", 
+                                  "Tracking"};
+const char* rfidToDoNames[] = {"NOTHING", 
+                               "RTS", 
+                               "FAST_START", 
+                               "NEW_AREA", 
+                               "SPEED", 
+                               "AREA1", 
+                               "AREA2", 
+                               "AREA3"};
 
 unsigned long StartReadAt;
 int distance_find;
 unsigned long EndReadAt;
 unsigned long ReadDuration;
-
-
 
 Robot::Robot() {
   name = "Generic";
@@ -208,7 +276,8 @@ Robot::Robot() {
   buttonCounter = 0;
   ledState = 0;
 
-  consoleMode = CONSOLE_OFF;
+  consoleMode = CONSOLE_PERIMETER;
+  //consoleMode = CONSOLE_OFF;
   nextTimeButtonCheck = 0;
   nextTimeInfo = 0;
   nextTimeScreen = 0;
@@ -1413,22 +1482,17 @@ void Robot::setMotorPWM(int pwmLeft, int pwmRight, boolean useAccel) {
   if (TaC > 1000) TaC = 1;
 
   if (stateCurr != STATE_OFF) {
-    /*
       ShowMessage(stateNames[stateCurr]);
-      ShowMessage(" Voeux a ");
-      ShowMessage (millis());
-      ShowMessage(" TaC=");
-      ShowMessage (TaC);
       ShowMessage(" Useaccel=");
       ShowMessage (useAccel);
       ShowMessage(" pwmLeft ");
       ShowMessageln (pwmLeft);
-
-      ShowMessage ("  motorLeftZeroTimeout : ");
-      ShowMessage (motorLeftZeroTimeout);
-      ShowMessage(" motorLeftPWMCurr=");
-      ShowMessageln (motorLeftPWMCurr);
-    */
+      ShowMessage(" pwmRight ");
+      ShowMessageln (pwmRight);
+      // ShowMessage ("  motorLeftZeroTimeout : ");
+      // ShowMessage (motorLeftZeroTimeout);
+      // ShowMessage(" motorLeftPWMCurr=");
+      // ShowMessageln (motorLeftPWMCurr);
   }
 
   // ----- driver protection (avoids driver explosion) ----------
@@ -1469,54 +1533,20 @@ void Robot::setMotorPWM(int pwmLeft, int pwmRight, boolean useAccel) {
 
     motorLeftPWMCurr += int(TaC) * (pwmLeft - motorLeftPWMCurr) / motorLeftChange;
     motorRightPWMCurr +=  int(TaC) * (pwmRight - motorRightPWMCurr) / motorRightChange;
-    /*
-        ShowMessage(" motorLeftZeroTimeout=");
-        ShowMessage (motorLeftZeroTimeout);
-        ShowMessage(" motorLeftChange=");
-        ShowMessage (motorLeftChange);
-        ShowMessage(" pwmRight=");
-        ShowMessage (pwmRight);
-        ShowMessage(" motorRightPWMCurr=");
-        ShowMessage (motorRightPWMCurr);
-        ShowMessage(" pwmLeft=");
-        ShowMessage (pwmLeft);
-        ShowMessage(" motorLeftPWMCurr=");
-        ShowMessageln (motorLeftPWMCurr);
-         if (motorLeftPWMCurr >255) {
-          motorLeftPWMCurr=255;
-          ShowMessageln ("motorLeftPWMCurr 2555555555555555555555555555555555555555");
-          }
-          if (motorRightPWMCurr >255) motorRightPWMCurr=255;
-    */
-
   }
-  /*
-    else
-    {
-    motorLeftPWMCurr = pwmLeft;
-    motorRightPWMCurr = pwmRight;
-    }
-  */
+
   motorLeftPWMCurr = pwmLeft;
   motorRightPWMCurr = pwmRight;
 
-  if (abs(motorLeftRpmCurr) < 1) motorLeftZeroTimeout = max(0, ((int)(motorLeftZeroTimeout - TaC)) );
-  else motorLeftZeroTimeout = 500;
-  if (abs(motorRightRpmCurr) < 1) motorRightZeroTimeout = max(0, ((int)(motorRightZeroTimeout - TaC)) );
-  else motorRightZeroTimeout = 500;
+  if (abs(motorLeftRpmCurr) < 1) 
+    motorLeftZeroTimeout = max(0, ((int)(motorLeftZeroTimeout - TaC)) );
+  else 
+    motorLeftZeroTimeout = 500;
+  if (abs(motorRightRpmCurr) < 1) 
+    motorRightZeroTimeout = max(0, ((int)(motorRightZeroTimeout - TaC)) );
+  else 
+    motorRightZeroTimeout = 500;
 
-  if (stateCurr != STATE_OFF) {
-    /*
-      ShowMessage(" result ");
-      ShowMessage (millis());
-      ShowMessage(" Right/Left ");
-      ShowMessage (motorRightPWMCurr);
-      ShowMessage(" / ");
-      ShowMessageln (motorLeftPWMCurr);
-    */
-
-
-  }
   // ---------------------------------
   if (motorLeftSwapDir)  // swap pin polarity?
     setActuator(ACT_MOTOR_LEFT, -motorLeftPWMCurr);
@@ -2206,7 +2236,6 @@ void Robot::motorControlPerimeter() {
 
 // check for odometry sensor faults
 void Robot::checkOdometryFaults() {
-
   boolean leftErr = false;
   boolean rightErr = false;
   if ((stateCurr == STATE_FORWARD) &&  (millis() - stateStartTime > 8000) ) {
@@ -2546,20 +2575,8 @@ void Robot::receivePiPfodCommand (String RpiCmd, float v1, float v2, float v3) {
   rc.processPI(RpiCmd, v1, v2, v3);
 }
 
-
-
-
-
-
 void Robot::printInfo(Stream & s) {
-
-
-
   if ((consoleMode == CONSOLE_OFF) || (consoleMode == CONSOLE_TRACKING)) {
-
-
-
-
   } else {
     Streamprint(s, "t%6u ", (millis() - stateStartTime) / 1000);
     Streamprint(s, "Loops%7u ", loopsPerSec);
@@ -3054,12 +3071,20 @@ void Robot::readSensors() {
         ShowMessage(smoothPeriMag);
         ShowMessage(F(" > perimeterTriggerMinSmag: "));
         ShowMessageln(perimeterTriggerMinSmag);
-        perimeterTriggerTime = millis();
+        if (!perimeter.isInside(0)) {
+          perimeterTriggerTime = millis();
+          ShowMessage("not inside at: ");
+          ShowMessageln(perimeterTriggerTime);
+        }
       }
       else
       {
         if (millis() >= nextTimePrintConsole) {
           nextTimePrintConsole = millis() + 1000;
+          ShowMessage(F("smoothPeriMag: "));
+          ShowMessage(smoothPeriMag);
+          ShowMessage(F(" <= perimeterTriggerMinSmag: "));
+          ShowMessageln(perimeterTriggerMinSmag);
           if ((developerActive) && (stateCurr == STATE_FORWARD_ODO)) {
             ShowMessageln("Bad reading perimeter In/Out, certainly we are very far the wire");
           }
@@ -3527,7 +3552,6 @@ void Robot::setNextState(byte stateNew, byte dir) {
       break;
 
     case STATE_STOP_ON_BUMPER:
-
       UseAccelLeft = 0;
       UseBrakeLeft = 1;
       UseAccelRight = 0;
@@ -3537,7 +3561,6 @@ void Robot::setNextState(byte stateNew, byte dir) {
       stateEndOdometryRight = odometryRight;// + (int)(odometryTicksPerCm / 6);
       stateEndOdometryLeft = odometryLeft;// + (int)(odometryTicksPerCm / 6);
       OdoRampCompute();
-
       break;
 
     case STATE_PERI_STOP_TOTRACK:
@@ -4644,8 +4667,10 @@ void Robot::reverseOrBidir(byte aRollDir) {
     return;
   }
 
-  if (mowPatternCurr == MOW_LANES) setNextState(STATE_STOP_ON_BUMPER, rollDir);
-  else  setNextState(STATE_STOP_ON_BUMPER, aRollDir);
+  if (mowPatternCurr == MOW_LANES) 
+    setNextState(STATE_STOP_ON_BUMPER, rollDir);
+  else
+    setNextState(STATE_STOP_ON_BUMPER, aRollDir);
 }
 
 // check motor current
@@ -4993,7 +5018,6 @@ void Robot::checkPerimeterBoundary() {
       }
     }
   }
-
 
   if (stateCurr == STATE_SONAR_TRIG) {  //wire is detected during the sonar braking need to stop immediatly
     if (perimeterTriggerTime != 0) {
@@ -6224,6 +6248,7 @@ void Robot::loop()  {
             setNextState(STATE_PERI_OBSTACLE_REV, rollDir);
           }
           else {
+            ShowMessageln ("switch to POUTREV after bumper stop");
             setNextState(STATE_PERI_OUT_REV, rollDir);
           }
           return;
@@ -6231,7 +6256,7 @@ void Robot::loop()  {
       }
       if (millis() > (stateStartTime + MaxOdoStateDuration)) {
         if (developerActive) {
-          ShowMessageln ("Warning can t  stop ON BUMPER in time ");
+          ShowMessageln ("Warning can't  stop in time ");
         }
         setNextState(STATE_PERI_OUT_REV, rollDir);//if the motor can't rech the odocible in slope
       }
@@ -6288,6 +6313,7 @@ void Robot::loop()  {
 
         if (motorLeftPWMCurr == 0 && motorRightPWMCurr == 0)  { //wait until the 2 motors completly stop because rotation is inverted
           //bber10
+          ShowMessageln ("switch after motor stop due to sonar");
           if (stateLast == STATE_PERI_FIND) {
             setNextState(STATE_PERI_OBSTACLE_REV, rollDir);
           }
@@ -6593,7 +6619,7 @@ void Robot::loop()  {
       }
       else
       { //  *************************RANDOM***************************************
-
+        ShowMessageln ("switch to POUTROLL on ");
         if (rollDir == RIGHT) {
           if ((odometryRight <= stateEndOdometryRight) && (moveLeftFinish) ) {
             if (motorLeftPWMCurr == 0 ) { //wait until the left motor completly stop because rotation is inverted
@@ -6612,7 +6638,7 @@ void Robot::loop()  {
       }
       if (millis() > (stateStartTime + MaxOdoStateDuration)) {
         if (developerActive) {
-          ShowMessageln ("Warning can t peri out rev in time ");
+          ShowMessageln ("Warning can't peri out rev in time ");
         }
         setNextState(STATE_PERI_OUT_LANE_ROLL1, rollDir);//if the motor can't rech the odocible in slope
       }
